@@ -1,160 +1,74 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>🎄 Secret Santa 🎁</title>
+<script>
+  let employees = [];
 
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: linear-gradient(180deg, #0b3d2e, #145a32);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: "Segoe UI", Tahoma, sans-serif;
+  // Fun Santa messages for multiple clicks
+  const santaMessages = [
+    "🎅 Ho Ho Ho! Same person again 😄",
+    "🎄 Santa says: Stop checking, start shopping 🎁",
+    "😈 Naughty list alert! No reshuffle",
+    "🎅 Destiny is locked!",
+    "🎁 Surprise! Still the same lucky person",
+    "🎄 Santa is watching you 👀"
+  ];
+
+  // Load employee data
+  fetch("data.json")
+    .then(res => res.json())
+    .then(data => employees = data)
+    .catch(() => alert("❌ Unable to load employee list"));
+
+  function reveal() {
+    const empId = document.getElementById("user").value.trim().toUpperCase();
+    if (!empId) {
+      alert("🎅 Please enter your Employee ID");
+      return;
     }
 
-    .card {
-      background: white;
-      width: 430px;
-      padding: 35px;
-      border-radius: 18px;
-      text-align: center;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.35);
-      position: relative;
-    }
+    const result = document.getElementById("result");
+    result.style.display = "block";
 
-    .card::before {
-      content: "🎄";
-      position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 50px;
-    }
+    const assignKey = "secret_santa_" + empId;
+    const clickKey = "click_count_" + empId;
 
-    h1 {
-      color: #b11226;
-      margin-top: 25px;
-    }
+    // Increase click count
+    let clicks = Number(localStorage.getItem(clickKey) || 0);
+    clicks++;
+    localStorage.setItem(clickKey, clicks);
 
-    p {
-      font-size: 14px;
-      color: #555;
-    }
+    // If already assigned
+    if (localStorage.getItem(assignKey)) {
+      const saved = JSON.parse(localStorage.getItem(assignKey));
 
-    input {
-      width: 90%;
-      padding: 10px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin: 20px 0;
-      text-transform: uppercase;
-    }
+      // Show fun message after first click
+      if (clicks > 1) {
+        const msg =
+          santaMessages[Math.floor(Math.random() * santaMessages.length)];
 
-    button {
-      background: #b11226;
-      color: white;
-      border: none;
-      padding: 12px 28px;
-      font-size: 16px;
-      border-radius: 30px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #8e0f1f;
-    }
-
-    .gift {
-      font-size: 60px;
-      margin: 20px 0;
-      animation: bounce 1.2s infinite;
-    }
-
-    @keyframes bounce {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    #result {
-      display: none;
-      margin-top: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #145a32;
-    }
-
-    .footer {
-      margin-top: 25px;
-      font-size: 12px;
-      color: #777;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="card">
-    <h1>🎅 Secret Santa 🎁</h1>
-    <p>Enter your Employee ID to find out who you will be gifting this Christmas!</p>
-
-    <input id="user" placeholder="🎄 Employee ID">
-
-    <div class="gift">🎁</div>
-
-    <button onclick="reveal()">🎄 Let Santa Decide</button>
-
-    <div id="result"></div>
-
-    <div class="footer">
-      🎄 Keep it secret • Spread joy • Merry Christmas 🎄
-    </div>
-  </div>
-
-  <script>
-    let employees = [];
-
-    // Load employee data
-    fetch("data.json")
-      .then(res => res.json())
-      .then(data => employees = data)
-      .catch(() => alert("❌ Unable to load employee list"));
-
-    function reveal() {
-      const empId = document.getElementById("user").value.trim().toUpperCase();
-      if (!empId) {
-        alert("🎅 Please enter your Employee ID");
-        return;
-      }
-
-      const key = "secret_santa_" + empId;
-      const result = document.getElementById("result");
-      result.style.display = "block";
-
-      // Already assigned
-      if (localStorage.getItem(key)) {
-        const saved = JSON.parse(localStorage.getItem(key));
+        result.innerHTML =
+          msg + "<br><br>" +
+          "🎁 You are the Secret Santa for<br><br>" +
+          "<span style='color:#b11226'>" + saved.name + "</span><br>" +
+          "<small>(Emp ID: " + saved.empId + ")</small><br><br>" +
+          "<em>Keep it secret 🎄</em>";
+      } else {
         showResult(saved);
-        return;
       }
-
-      // Pick random person
-      const random =
-        employees[Math.floor(Math.random() * employees.length)];
-
-      localStorage.setItem(key, JSON.stringify(random));
-      showResult(random);
+      return;
     }
 
-    function showResult(data) {
-      document.getElementById("result").innerHTML =
-        "🎁 You are the Secret Santa for<br><br>" +
-        "<span style='color:#b11226'>" + data.name + "</span><br>" +
-        "<small>(Emp ID: " + data.empId + ")</small><br><br>" +
-        "<em>Keep it secret 🎄</em>";
-    }
-  </script>
-</body>
-</html>
+    // First-time assignment
+    const random =
+      employees[Math.floor(Math.random() * employees.length)];
+
+    localStorage.setItem(assignKey, JSON.stringify(random));
+    showResult(random);
+  }
+
+  function showResult(data) {
+    document.getElementById("result").innerHTML =
+      "🎁 You are the Secret Santa for<br><br>" +
+      "<span style='color:#b11226'>" + data.name + "</span><br>" +
+      "<small>(Emp ID: " + data.empId + ")</small><br><br>" +
+      "<em>Stick to it and spread joy 🎄</em>";
+  }
+</script>
