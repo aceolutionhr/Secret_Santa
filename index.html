@@ -1,8 +1,101 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="UTF-8">
+  <title>🎄 Secret Santa</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #145a32;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 350px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 15px 0;
+      text-transform: uppercase;
+    }
+    button {
+      padding: 12px 25px;
+      background: #b11226;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
 <body>
-  <h2>🎄 Secret Santa</h2>
-  <input placeholder="Employee ID">
-  <button>🎄 Let Santa Decide</button>
+<div class="box">
+  <h2>🎅 Secret Santa</h2>
+  <p>Enter your Employee ID</p>
+
+  <input id="empId" placeholder="Employee ID">
+  <br>
+  <button onclick="decide()">🎄 Let Santa Decide</button>
+
+  <div id="result" style="margin-top:20px;font-weight:bold;"></div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  projectId: "PASTE_HERE"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+async function decide() {
+  const empId = document.getElementById("empId").value.trim().toUpperCase();
+  if (!empId) return alert("Enter Employee ID");
+
+  const lockRef = db.collection("locks").doc(empId);
+  const lockSnap = await lockRef.get();
+
+  if (lockSnap.exists) {
+    show(lockSnap.data(), true);
+    return;
+  }
+
+  const namesSnap = await db.collection("names").get();
+  const list = namesSnap.docs.map(d => d.data());
+
+  const pick = list[Math.floor(Math.random() * list.length)];
+
+  const data = {
+    userEmpId: empId,
+    assignedEmpId: pick.empId,
+    assignedName: pick.name
+  };
+
+  await lockRef.set(data);
+  show(data, false);
+}
+
+function show(data, repeat) {
+  document.getElementById("result").innerHTML =
+    (repeat ? "🎅 Same person 😄<br><br>" : "") +
+    "🎁 You are the Secret Santa for<br><br>" +
+    data.assignedName +
+    "<br><small>(" + data.assignedEmpId + ")</small>";
+}
+</script>
 </body>
 </html>
