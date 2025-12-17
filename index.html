@@ -54,9 +54,9 @@
 
 <script>
 const firebaseConfig = {
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE",
-  projectId: "PASTE_HERE"
+  apiKey: "AIzaSyDuvMybAYiVCQRSO7Y6RIxvaKgMQ2nCKsw",
+  authDomain: "secret-santa-dc463.firebaseapp.com",
+  projectId: "secret-santa-dc463"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -91,7 +91,7 @@ async function decide() {
 
 function show(data, repeat) {
   document.getElementById("result").innerHTML =
-    (repeat ? "🎅 Same person 😄<br><br>" : "") +
+    (repeat? "🎅 Same person 😄<br><br>" : "") +
     "🎁 You are the Secret Santa for<br><br>" +
     data.assignedName +
     "<br><small>(" + data.assignedEmpId + ")</small>";
